@@ -99,6 +99,20 @@ const Home = () => {
     }
   };
 
+  // Helper function to format latest results date consistently
+  const formatLatestResultsDate = (dateStr) => {
+    try {
+      const date = new Date(dateStr + "T14:00:00Z");
+      return date.toLocaleString("en-GB", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    } catch (error) {
+      return dateStr;
+    }
+  };
+
   // Get country flag
   const getCountryFlag = (country) => {
     const countryFlags = {
@@ -132,118 +146,61 @@ const Home = () => {
 
   // Get actual circuit layout image
   const getCircuitLayout = (circuitName) => {
-    const workingCircuitLayouts = {
+    const f1CircuitMaps = {
       "Circuit de Monaco":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Monte_Carlo_Formula_1_track_map.svg/800px-Monte_Carlo_Formula_1_track_map.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Monaco_Circuit",
+      "Silverstone Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Great_Britain_Circuit",
       "Circuit de Barcelona-Catalunya":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Formula1_Circuit_Catalunya.svg/800px-Formula1_Circuit_Catalunya.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Spain_Circuit",
       "Circuit de Catalunya":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Formula1_Circuit_Catalunya.svg/800px-Formula1_Circuit_Catalunya.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Spain_Circuit",
       Barcelona:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Formula1_Circuit_Catalunya.svg/800px-Formula1_Circuit_Catalunya.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Spain_Circuit",
       "Circuit de Spa-Francorchamps":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Spa-Francorchamps_of_Belgium.svg/800px-Spa-Francorchamps_of_Belgium.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Belgium_Circuit",
       "Autodromo Nazionale Monza":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Monza_track_map.svg/800px-Monza_track_map.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Italy_Circuit",
+      "Suzuka Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Japan_Circuit",
+      "Red Bull Ring":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Austria_Circuit",
       Hungaroring:
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Hungaroring.svg/800px-Hungaroring.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Hungary_Circuit",
+      "Circuit Zandvoort":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Netherlands_Circuit",
       "Autodromo Enzo e Dino Ferrari":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Imola.svg/800px-Imola.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/EmiliaRomagna_Circuit",
+      "Miami International Autodrome":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Miami_Circuit",
+      "Jeddah Corniche Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Saudi_Arabia_Circuit",
       "Bahrain International Circuit":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Bahrain_International_Circuit--Grand_Prix_Layout.svg/800px-Bahrain_International_Circuit--Grand_Prix_Layout.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Bahrain_Circuit",
+      "Albert Park Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Australia_Circuit",
+      "Baku City Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Baku_Circuit",
+      "Circuit Gilles Villeneuve":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Canada_Circuit",
+      "Marina Bay Street Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Singapore_Circuit",
+      "Suzuka International Racing Course":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Japan_Circuit",
       "Circuit of the Americas":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Austin_circuit.svg/800px-Austin_circuit.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/USA_Circuit",
       "Autódromo Hermanos Rodríguez":
-        "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Aut%C3%B3dromo_Hermanos_Rodr%C3%ADguez_2015.svg/800px-Aut%C3%B3dromo_Hermanos_Rodr%C3%ADguez_2015.svg.png",
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Mexico_Circuit",
+      "Autódromo José Carlos Pace":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Brazil_Circuit",
+      "Las Vegas Strip Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Las_Vegas_Circuit",
+      "Yas Marina Circuit":
+        "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Abu_Dhabi_Circuit",
     };
 
-    // Circuits that are blocked by Wikimedia - use custom SVG
-    const blockedCircuits = [
-      "Silverstone Circuit",
-      "Suzuka Circuit",
-      "Red Bull Ring",
-      "Circuit Zandvoort",
-      "Miami International Autodrome",
-      "Jeddah Corniche Circuit",
-      "Albert Park Circuit",
-      "Baku City Circuit",
-      "Circuit Gilles Villeneuve",
-      "Marina Bay Street Circuit",
-      "Autódromo José Carlos Pace",
-      "Las Vegas Strip Circuit",
-      "Yas Marina Circuit",
-    ];
-
-    // Custom circuit representations for blocked circuits
-    const getCustomCircuitSVG = (circuitName) => {
-      const circuitShapes = {
-        "Silverstone Circuit":
-          "M20 40 Q40 20, 80 30 Q120 40, 140 60 Q120 80, 80 70 Q40 60, 20 40",
-        "Suzuka Circuit":
-          "M20 50 Q60 20, 100 50 Q140 80, 100 110 Q60 80, 20 50",
-        "Red Bull Ring": "M20 60 L60 20 L120 20 L160 60 L120 100 L60 100 Z",
-        "Circuit Zandvoort":
-          "M20 50 Q40 20, 80 30 Q120 20, 140 50 Q120 80, 80 70 Q40 80, 20 50",
-        "Miami International Autodrome":
-          "M20 30 L60 30 L80 50 L120 50 L140 70 L100 70 L80 50 L40 50 L20 30",
-        "Jeddah Corniche Circuit":
-          "M20 40 L160 40 L160 60 L140 80 L40 80 L20 60 Z",
-        "Albert Park Circuit":
-          "M30 50 Q50 30, 80 40 Q110 30, 130 50 Q110 70, 80 60 Q50 70, 30 50",
-        "Baku City Circuit":
-          "M20 50 L60 20 L100 20 L140 50 L140 80 L100 80 L60 80 L20 50",
-        "Circuit Gilles Villeneuve":
-          "M20 40 L80 20 L140 40 L140 80 L80 80 L20 60 Z",
-        "Marina Bay Street Circuit":
-          "M30 30 L130 30 L150 50 L130 70 L30 70 L10 50 Z",
-        "Autódromo José Carlos Pace":
-          "M20 50 Q60 20, 100 50 Q140 20, 160 50 Q140 80, 100 50 Q60 80, 20 50",
-        "Las Vegas Strip Circuit": "M20 40 L160 40 L160 60 L20 60 Z",
-        "Yas Marina Circuit":
-          "M30 50 Q70 20, 110 50 Q150 20, 170 50 Q150 80, 110 50 Q70 80, 30 50",
-      };
-
-      const path =
-        circuitShapes[circuitName] ||
-        "M20 50 Q60 30, 100 50 Q140 70, 100 50 Q60 70, 20 50";
-
-      return (
-        <div className="rounded-lg p-4 mb-4">
-          <div className="flex items-center justify-center">
-            <svg
-              width="180"
-              height="100"
-              viewBox="0 0 180 100"
-              className="text-[#B91C3C]"
-            >
-              <path
-                d={path}
-                stroke="currentColor"
-                strokeWidth="3"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <circle cx="20" cy="50" r="4" fill="currentColor" />
-              <text x="30" y="55" fontSize="10" fill="currentColor">
-                START/FINISH
-              </text>
-            </svg>
-          </div>
-          <p className="text-center text-xs text-gray-600 mt-2">
-            {circuitName}
-          </p>
-        </div>
-      );
-    };
-
-    // Check if circuit is blocked
-    if (blockedCircuits.includes(circuitName)) {
-      return getCustomCircuitSVG(circuitName);
-    }
-
-    // Try working layouts first
-    let imageUrl = workingCircuitLayouts[circuitName];
+    // Try exact match first
+    let imageUrl = f1CircuitMaps[circuitName];
 
     // If no exact match, try partial matching for common variations
     if (!imageUrl) {
@@ -253,16 +210,22 @@ const Home = () => {
         lowerCircuitName.includes("catalunya")
       ) {
         imageUrl =
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Formula1_Circuit_Catalunya.svg/800px-Formula1_Circuit_Catalunya.svg.png";
+          "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Spain_Circuit";
+      } else if (lowerCircuitName.includes("silverstone")) {
+        imageUrl =
+          "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Great_Britain_Circuit";
       } else if (lowerCircuitName.includes("monaco")) {
         imageUrl =
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Monte_Carlo_Formula_1_track_map.svg/800px-Monte_Carlo_Formula_1_track_map.svg.png";
+          "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Monaco_Circuit";
       } else if (lowerCircuitName.includes("spa")) {
         imageUrl =
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Spa-Francorchamps_of_Belgium.svg/800px-Spa-Francorchamps_of_Belgium.svg.png";
+          "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Belgium_Circuit";
       } else if (lowerCircuitName.includes("monza")) {
         imageUrl =
-          "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f8/Monza_track_map.svg/800px-Monza_track_map.svg.png";
+          "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Italy_Circuit";
+      } else if (lowerCircuitName.includes("suzuka")) {
+        imageUrl =
+          "https://media.formula1.com/image/upload/f_auto,c_limit,q_auto,w_771/content/dam/fom-website/2018-redesign-assets/Circuit maps 16x9/Japan_Circuit";
       }
     }
 
@@ -292,7 +255,7 @@ const Home = () => {
       );
     }
 
-    // Fallback for any other circuits
+    // Fallback if no circuit image is available or error occurred
     return (
       <div className="rounded-lg p-4 mb-4">
         <div className="flex items-center justify-center h-20">
@@ -492,8 +455,8 @@ const Home = () => {
                     : "Latest Race"}
                 </h2>
                 <div className="space-y-6">
-                  <div>
-                    <h3 className="text-2xl font-semibold text-[#B91C3C] mb-4 flex items-center gap-3">
+                  <div className="text-center">
+                    <h3 className="text-xl font-semibold text-[#B91C3C] mb-4 flex items-center justify-center gap-3">
                       {testMode && testCircuit
                         ? testCircuit
                         : nextRace.raceName}
@@ -501,16 +464,16 @@ const Home = () => {
                     </h3>
                     {!testMode && (
                       <div className="space-y-3">
-                        <div className="flex items-center space-x-3 text-gray-600">
+                        <div className="flex items-center justify-center space-x-3 text-gray-600">
                           <MapPin size={20} />
-                          <span>
+                          <span className="text-sm">
                             {nextRace.Circuit.Location.locality},{" "}
                             {nextRace.Circuit.Location.country}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-3 text-gray-600">
+                        <div className="flex items-center justify-center space-x-3 text-gray-500">
                           <Clock size={20} />
-                          <span>
+                          <span className="text-sm">
                             {formatRaceTime(nextRace.date, nextRace.time)}
                           </span>
                         </div>
@@ -546,16 +509,24 @@ const Home = () => {
                 </h2>
                 <div className="space-y-6">
                   <div className="text-center">
-                    <h3 className="text-xl font-semibold text-[#B91C3C] mb-2 flex items-center justify-center gap-3">
+                    <h3 className="text-xl font-semibold text-[#B91C3C] mb-4 flex items-center justify-center gap-3">
                       {recentRaceResults.raceName}
                       <span className="text-3xl">{recentRaceFlag}</span>
                     </h3>
-                    <p className="text-gray-600 text-sm">
-                      {recentRaceResults.location}
-                    </p>
-                    <p className="text-gray-500 text-sm">
-                      {recentRaceResults.date}
-                    </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center space-x-3 text-gray-600">
+                        <MapPin size={20} />
+                        <span className="text-sm">
+                          {recentRaceResults.location}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-center space-x-3 text-gray-500">
+                        <Clock size={20} />
+                        <span className="text-sm">
+                          {formatLatestResultsDate(recentRaceResults.date)}
+                        </span>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
