@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Menu, X, Calendar, Home, BookOpen, Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -26,34 +27,34 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <a
-              href="/"
+            <Link
+              to="/"
               className="flex items-center space-x-1 text-gray-700 hover:text-[#B91C3C] transition-colors"
             >
               <Home size={18} />
               <span>Home</span>
-            </a>
-            <a
-              href="/blog"
+            </Link>
+            <Link
+              to="/blog"
               className="flex items-center space-x-1 text-gray-700 hover:text-[#B91C3C] transition-colors"
             >
               <BookOpen size={18} />
               <span>Blog</span>
-            </a>
-            <a
-              href="/calendar"
+            </Link>
+            <Link
+              to="/calendar"
               className="flex items-center space-x-1 text-gray-700 hover:text-[#B91C3C] transition-colors"
             >
               <Calendar size={18} />
               <span>Calendar</span>
-            </a>
-            <a
-              href="/search"
+            </Link>
+            <Link
+              to="/search"
               className="flex items-center space-x-1 text-gray-700 hover:text-[#B91C3C] transition-colors"
             >
               <Search size={18} />
               <span>Race Search</span>
-            </a>
+            </Link>
           </nav>
 
           {/* Mobile menu button */}
@@ -69,34 +70,34 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100">
             <nav className="flex flex-col space-y-3">
-              <a
-                href="/"
+              <Link
+                to="/"
                 className="flex items-center space-x-2 text-gray-700 hover:text-[#B91C3C] py-2"
               >
                 <Home size={18} />
                 <span>Home</span>
-              </a>
-              <a
-                href="/blog"
+              </Link>
+              <Link
+                to="/blog"
                 className="flex items-center space-x-2 text-gray-700 hover:text-[#B91C3C] py-2"
               >
                 <BookOpen size={18} />
                 <span>Blog</span>
-              </a>
-              <a
-                href="/calendar"
+              </Link>
+              <Link
+                to="/calendar"
                 className="flex items-center space-x-2 text-gray-700 hover:text-[#B91C3C] py-2"
               >
                 <Calendar size={18} />
                 <span>Calendar</span>
-              </a>
-              <a
-                href="/search"
+              </Link>
+              <Link
+                to="/search"
                 className="flex items-center space-x-2 text-gray-700 hover:text-[#B91C3C] py-2"
               >
                 <Search size={18} />
                 <span>Race Search</span>
-              </a>
+              </Link>
             </nav>
           </div>
         )}

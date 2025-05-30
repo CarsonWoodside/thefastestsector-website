@@ -138,3 +138,33 @@ export const getTotalRaces = async () => {
     return [];
   }
 };
+
+// Get constructor championship standings
+export const getConstructorStandings = async () => {
+  try {
+    const currentSeason = getCurrentSeason();
+    const response = await axios.get(`${BASE_URL}/${currentSeason}/constructorStandings.json`);
+    const standings = response.data.MRData.StandingsTable.StandingsLists;
+    
+    if (standings && standings.length > 0) {
+      return standings[0].ConstructorStandings || [];
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error fetching constructor standings:', error);
+    return [];
+  }
+};
+
+// Get driver's race results for the season
+export const getDriverResults = async (driverId) => {
+  try {
+    const currentSeason = getCurrentSeason();
+    const response = await axios.get(`${BASE_URL}/${currentSeason}/drivers/${driverId}/results.json`);
+    return response.data.MRData.RaceTable.Races || [];
+  } catch (error) {
+    console.error('Error fetching driver results:', error);
+    return [];
+  }
+};

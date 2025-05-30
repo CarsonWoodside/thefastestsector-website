@@ -9,6 +9,7 @@ import {
   Flag,
   TestTube,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useF1Data } from "../hooks/useF1Data";
 
 const Home = () => {
@@ -574,7 +575,10 @@ const Home = () => {
           {!testMode && (
             <>
               <div className="grid md:grid-cols-3 gap-6 mb-12">
-                <div className="bg-white rounded-xl shadow-md p-6 text-center">
+                <Link
+                  to="/standings"
+                  className="bg-white rounded-xl shadow-md p-6 text-center hover:shadow-lg transition-shadow cursor-pointer"
+                >
                   <Trophy className="w-12 h-12 text-[#B91C3C] mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">
                     Championship Leader
@@ -592,7 +596,7 @@ const Home = () => {
                   ) : (
                     <p className="text-gray-400">No data available</p>
                   )}
-                </div>
+                </Link>
                 <div className="bg-white rounded-xl shadow-md p-6 text-center">
                   <TrendingUp className="w-12 h-12 text-[#B91C3C] mx-auto mb-4" />
                   <h3 className="text-xl font-semibold mb-2">
