@@ -1,21 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
-
+@plugin "@tailwindcss/typography";
 
 :root {
-  --primary: #B91C3C; /* Burgundy from logo */
-  --primary-dark: #991B1B;
-  --primary-light: #DC2626;
-  --secondary: #1F2937;
-  --accent: #F59E0B;
-  --background: #FAFAFA;
-  --surface: #FFFFFF;
+  --primary: #b91c3c; /* Burgundy from logo */
+  --primary-dark: #991b1b;
+  --primary-light: #dc2626;
+  --secondary: #1f2937;
+  --accent: #f59e0b;
+  --background: #fafafa;
+  --surface: #ffffff;
   --text-primary: #111827;
-  --text-secondary: #6B7280;
+  --text-secondary: #6b7280;
 }
 
-
-
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
