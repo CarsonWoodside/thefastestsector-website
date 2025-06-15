@@ -7,6 +7,8 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import Admin from "./pages/admin/Admin";
 import BlogEditor from "./pages/admin/BlogEditor";
+import Calendar from "./pages/Calendar";
+import LiveRace from "./pages/LiveRace";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -25,6 +27,8 @@ function AppContent() {
         <Route path="/standings" element={<Standings />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/calendar" element={<Calendar />} />
+        <Route path="/live" element={<LiveRace />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<Admin />} />

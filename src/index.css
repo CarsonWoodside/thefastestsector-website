@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+
 :root {
   --primary: #b91c3c; /* Burgundy from logo */
   --primary-dark: #991b1b;

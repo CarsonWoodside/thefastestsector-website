@@ -1,32 +1,27 @@
 import { useState } from "react";
-import { Menu, X, Calendar, Home, BookOpen, Search } from "lucide-react";
+import { Menu, X, Calendar, Home, BookOpen, Search, Radio } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLiveRaceStatus } from "../../hooks/useLiveRaceStatus";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isRaceActive } = useLiveRaceStatus();
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#B91C3C] rounded-full flex items-center justify-center">
-              <div
-                className="w-6 h-6 bg-white"
-                style={{
-                  clipPath:
-                    "polygon(50% 0%, 0% 50%, 25% 50%, 25% 75%, 75% 75%, 75% 50%, 100% 50%)",
-                }}
-              ></div>
-            </div>
-            <span className="text-xl font-bold text-gray-900">
-              thefastestsector
-            </span>
-          </div>
+          <Link to="/" className="flex items-center space-x-3">
+            <img
+              src="/logo.svg"
+              alt="The Fastest Sector"
+              className="h-10 w-auto"
+            />
+          </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex items-center space-x-8">
             <Link
               to="/"
               className="flex items-center space-x-1 text-gray-700 hover:text-[#B91C3C] transition-colors"
@@ -55,6 +50,16 @@ const Header = () => {
               <Search size={18} />
               <span>Race Search</span>
             </Link>
+            {/* Conditionally rendered Live Race Link */}
+            {isRaceActive && (
+              <Link
+                to="/live"
+                className="flex items-center space-x-2 text-red-600 animate-pulse hover:text-red-800 transition-colors"
+              >
+                <Radio size={18} />
+                <span className="font-bold">Live</span>
+              </Link>
+            )}
           </nav>
 
           {/* Mobile menu button */}
@@ -98,6 +103,15 @@ const Header = () => {
                 <Search size={18} />
                 <span>Race Search</span>
               </Link>
+              {isRaceActive && (
+                <Link
+                  to="/live"
+                  className="flex items-center space-x-2 text-red-600 font-bold py-2"
+                >
+                  <Radio size={18} />
+                  <span>Live Race</span>
+                </Link>
+              )}
             </nav>
           </div>
         )}
