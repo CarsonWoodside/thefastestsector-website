@@ -14,7 +14,7 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img
-              src="/logo.svg"
+              src="/logo.png"
               alt="The Fastest Sector"
               className="h-10 w-auto"
             />
@@ -105,11 +105,10 @@ const Header = () => {
               </Link>
               {isRaceActive && (
                 <Link
-                  to="/live"
-                  className="flex items-center space-x-2 text-red-600 font-bold py-2"
+                  to="/live-race"
+                  className="text-gray-700 hover:text-red-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
-                  <Radio size={18} />
-                  <span>Live Race</span>
+                  Live Race
                 </Link>
               )}
             </nav>

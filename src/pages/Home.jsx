@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useF1Data } from "../hooks/useF1Data";
+import { useLiveRaceStatus } from "../hooks/useLiveRaceStatus";
 
 const Home = () => {
   const [timeToRace, setTimeToRace] = useState("");
@@ -27,6 +28,9 @@ const Home = () => {
     loading,
     error,
   } = useF1Data();
+
+  // Add live race status
+  const { isLiveRace, liveRaceData } = useLiveRaceStatus();
 
   // List of circuits for testing
   const testCircuits = [
@@ -501,72 +505,159 @@ const Home = () => {
               </div>
             )}
 
-            {/* Recent Race Results */}
-            {recentRaceResults && !testMode && (
+            {/* Latest Results / Live Race Card */}
+            {!testMode && (
               <div className="bg-white rounded-2xl shadow-lg p-8">
                 <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 flex items-center justify-center gap-3">
                   <Medal className="text-[#B91C3C]" size={32} />
-                  Latest Results
+                  {isLiveRace ? "Live Race" : "Latest Results"}
+                  {isLiveRace && (
+                    <div className="ml-3 flex items-center">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      <span className="ml-2 text-sm font-medium text-red-600">
+                        LIVE
+                      </span>
+                    </div>
+                  )}
                 </h2>
-                <div className="space-y-6">
-                  <div className="text-center">
-                    <h3 className="text-xl font-semibold text-[#B91C3C] mb-4 flex items-center justify-center gap-3">
-                      {recentRaceResults.raceName}
-                      <span className="text-3xl">{recentRaceFlag}</span>
-                    </h3>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center space-x-3 text-gray-600">
-                        <MapPin size={20} />
-                        <span className="text-sm">
-                          {recentRaceResults.location}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-center space-x-3 text-gray-500">
-                        <Clock size={20} />
-                        <span className="text-sm">
-                          {formatLatestResultsDate(recentRaceResults.date)}
-                        </span>
+
+                {isLiveRace && liveRaceData ? (
+                  <>
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold text-[#B91C3C] mb-4 flex items-center justify-center gap-3">
+                        {liveRaceData.raceName}
+                        <span className="text-3xl">🏎️</span>
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center space-x-3 text-gray-600">
+                          <MapPin size={20} />
+                          <span className="text-sm">
+                            {liveRaceData.Circuit?.Location?.locality},{" "}
+                            {liveRaceData.Circuit?.Location?.country}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  <div className="space-y-3">
-                    {recentRaceResults.podium.map((driver) => (
-                      <div
-                        key={driver.position}
-                        className={`p-4 rounded-lg ${getPodiumStyling(
-                          driver.position
-                        )}`}
+                    <div className="text-center mb-6">
+                      <div className="text-2xl font-bold text-[#B91C3C] mb-2">
+                        🏁 Race in Progress
+                      </div>
+                      <p className="text-gray-600">
+                        Live timing and standings available
+                      </p>
+                    </div>
+
+                    {/* Only show View More button when there's a live race */}
+                    <div className="text-center">
+                      <Link
+                        to="/live-race"
+                        className="bg-[#B91C3C] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#991B1B] transition-colors inline-flex items-center gap-2"
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl font-bold">
-                              {driver.position === 1
-                                ? "🥇"
-                                : driver.position === 2
-                                ? "🥈"
-                                : "🥉"}
-                            </span>
-                            <div>
-                              <p className="font-semibold">
-                                {driver.driverName}
-                              </p>
-                              <p className="text-sm opacity-80">
-                                {driver.constructorName}
+                        View Live Race
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </Link>
+                    </div>
+                  </>
+                ) : recentRaceResults ? (
+                  <>
+                    <div className="text-center mb-4">
+                      <h3 className="text-xl font-semibold text-[#B91C3C] mb-4 flex items-center justify-center gap-3">
+                        {recentRaceResults.raceName}
+                        <span className="text-3xl">{recentRaceFlag}</span>
+                      </h3>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-center space-x-3 text-gray-600">
+                          <MapPin size={20} />
+                          <span className="text-sm">
+                            {recentRaceResults.location}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-center space-x-3 text-gray-500">
+                          <Clock size={20} />
+                          <span className="text-sm">
+                            {formatLatestResultsDate(recentRaceResults.date)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 mb-6">
+                      {recentRaceResults.podium.map((driver) => (
+                        <div
+                          key={driver.position}
+                          className={`p-4 rounded-lg ${getPodiumStyling(
+                            driver.position
+                          )}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl font-bold">
+                                {driver.position === 1
+                                  ? "🥇"
+                                  : driver.position === 2
+                                  ? "🥈"
+                                  : "🥉"}
+                              </span>
+                              <div>
+                                <p className="font-semibold">
+                                  {driver.driverName}
+                                </p>
+                                <p className="text-sm opacity-80">
+                                  {driver.constructorName}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-mono text-sm">{driver.time}</p>
+                              <p className="text-xs opacity-80">
+                                {driver.points} pts
                               </p>
                             </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-mono text-sm">{driver.time}</p>
-                            <p className="text-xs opacity-80">
-                              {driver.points} pts
-                            </p>
-                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                      ))}
+                    </div>
+
+                    <div className="text-center">
+                      <Link
+                        to="/results"
+                        className="bg-[#B91C3C] text-white px-6 py-3 rounded-lg font-semibold hover:bg-[#991B1B] transition-colors inline-flex items-center gap-2"
+                      >
+                        View All Results
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-gray-600 text-center">
+                    No recent race results available
+                  </p>
+                )}
               </div>
             )}
           </div>
