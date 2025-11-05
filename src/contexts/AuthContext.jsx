@@ -10,8 +10,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   const login = (password) => {
-    // Simple password check - in production use proper authentication
-    if (password === "admin") {
+    if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       localStorage.setItem("adminAuth", "true");
       return true;

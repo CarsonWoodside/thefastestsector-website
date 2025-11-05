@@ -1,164 +1,183 @@
-import { useState, useEffect } from "react";
-import { useLiveRaceStatus } from "../hooks/useLiveRaceStatus";
+// src/components/LiveRace.jsx
+import { useState, useEffect, useRef } from "react";
+import useLiveRaceStatus from "../hooks/useLiveRaceStatus";
 
 const LiveRace = () => {
   const [intervals, setIntervals] = useState([]);
   const [drivers, setDrivers] = useState({});
   const [loading, setLoading] = useState(true);
   const [retiredDrivers, setRetiredDrivers] = useState(new Set());
-  const { isLiveRace } = useLiveRaceStatus();
+  const { isLiveRace, liveSession } = useLiveRaceStatus(15000); // poll sessions every 15s
 
+  const pollRef = useRef(null);
+
+  // Fetch drivers once when session becomes live
   useEffect(() => {
-    // Only fetch data if there's a live race
-    if (!isLiveRace) {
-      setLoading(false);
-      return;
-    }
+    let cancelled = false;
+    const controller = new AbortController();
 
-    // Fetch driver information once
     const fetchDrivers = async () => {
       try {
-        const response = await fetch(
-          "https://api.openf1.org/v1/drivers?session_key=latest"
+        setLoading(true);
+        const res = await fetch(
+          "https://api.openf1.org/v1/drivers?session_key=latest",
+          { signal: controller.signal }
         );
-        const data = await response.json();
-        const driverMap = data.reduce((acc, driver) => {
-          acc[driver.driver_number] = driver;
-          return acc;
-        }, {});
-        setDrivers(driverMap);
-      } catch (error) {
-        console.error("Failed to fetch drivers:", error);
+        if (!res.ok) throw new Error(`Drivers fetch failed ${res.status}`);
+        const data = await res.json();
+        // Build a map keyed by number (numbers sometimes strings) -> normalize to Number keys
+        const map = {};
+        (data || []).forEach((d) => {
+          const num = Number(d.driver_number);
+          map[num] = d;
+        });
+        if (!cancelled) {
+          setDrivers(map);
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Failed to fetch drivers:", err);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
-    fetchDrivers();
-  }, [isLiveRace]);
 
-  useEffect(() => {
-    // Only set up live updates if there's a live race
-    if (!isLiveRace) {
+    if (isLiveRace) {
+      fetchDrivers();
+    } else {
+      // If no live race, clear things
+      setIntervals([]);
+      setDrivers({});
+      setRetiredDrivers(new Set());
       setLoading(false);
-      return;
     }
 
-    const fetchLiveIntervals = async () => {
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [isLiveRace]);
+
+  // Poll live intervals + positions while race is live
+  useEffect(() => {
+    let cancelled = false;
+    const controller = new AbortController();
+
+    const fetchLive = async () => {
       try {
-        // Fetch both intervals and position data
-        const [intervalsResponse, positionResponse] = await Promise.all([
-          fetch("https://api.openf1.org/v1/intervals?session_key=latest"),
-          fetch("https://api.openf1.org/v1/position?session_key=latest"),
+        setLoading(true);
+        const [intervalsRes, positionRes] = await Promise.all([
+          fetch("https://api.openf1.org/v1/intervals?session_key=latest", {
+            signal: controller.signal,
+          }),
+          fetch("https://api.openf1.org/v1/position?session_key=latest", {
+            signal: controller.signal,
+          }),
         ]);
+        if (!intervalsRes.ok || !positionRes.ok) {
+          throw new Error("Live endpoints returned non-OK");
+        }
+        const intervalsData = await intervalsRes.json();
+        const positionsData = await positionRes.json();
 
-        const intervalsData = await intervalsResponse.json();
-        const positionData = await positionResponse.json();
+        // Normalize arrays
+        const latestIntervals = Array.isArray(intervalsData)
+          ? intervalsData
+          : Object.values(intervalsData || {});
+        const latestPositions = Array.isArray(positionsData)
+          ? positionsData
+          : Object.values(positionsData || {});
 
-        // Get latest intervals
-        const latestIntervals = Object.values(
-          intervalsData.reduce((acc, item) => {
-            acc[item.driver_number] = item;
-            return acc;
-          }, {})
-        );
-
-        // Get latest positions for cross-reference
-        const latestPositions = Object.values(
-          positionData.reduce((acc, item) => {
-            acc[item.driver_number] = item;
-            return acc;
-          }, {})
-        );
-
-        // Create position map for validation
+        // Build position map
         const positionMap = latestPositions.reduce((acc, pos) => {
-          acc[pos.driver_number] = pos.position;
+          acc[Number(pos.driver_number)] = Number(pos.position);
           return acc;
         }, {});
 
-        // Detect retired drivers (no recent data or specific status)
-        const activeDriverNumbers = new Set(
-          latestIntervals.map((d) => d.driver_number)
-        );
-        const allDriverNumbers = Object.keys(drivers).map(Number);
+        // Latest intervals map by driver_number
+        const intervalsMap = latestIntervals.reduce((acc, it) => {
+          acc[Number(it.driver_number)] = it;
+          return acc;
+        }, {});
 
-        const newRetiredDrivers = new Set(retiredDrivers);
-        allDriverNumbers.forEach((driverNum) => {
-          if (!activeDriverNumbers.has(driverNum)) {
-            newRetiredDrivers.add(driverNum);
-          }
+        // Detect retired drivers (drivers in drivers map but not in intervalsMap)
+        const activeSet = new Set(Object.keys(intervalsMap).map(Number));
+        const allDriverNums = Object.keys(drivers).map((k) => Number(k));
+        const newRetired = new Set(retiredDrivers);
+        allDriverNums.forEach((num) => {
+          if (!activeSet.has(num)) newRetired.add(num);
         });
 
-        // Enhanced sorting with position validation
-        const sortedIntervals = latestIntervals
-          .filter(
-            (driver) =>
-              driver.gap_to_leader !== null || driver.interval !== null
-          )
-          .sort((a, b) => {
-            // First, try to use position data if available
-            const posA = positionMap[a.driver_number];
-            const posB = positionMap[b.driver_number];
+        // Convert intervals map to array
+        const intervalsArray = Object.values(intervalsMap).map((it) => ({
+          ...it,
+          driver_number: Number(it.driver_number),
+          gap_to_leader:
+            it.gap_to_leader === null || it.gap_to_leader === undefined
+              ? null
+              : Number(it.gap_to_leader),
+          interval:
+            it.interval === null || it.interval === undefined
+              ? null
+              : Number(it.interval),
+        }));
 
-            if (posA && posB) {
-              return posA - posB;
-            }
+        // Sorting: use position if present, else gap_to_leader
+        const sorted = intervalsArray.slice().sort((a, b) => {
+          const posA = positionMap[a.driver_number];
+          const posB = positionMap[b.driver_number];
+          if (posA !== undefined && posB !== undefined) return posA - posB;
 
-            // Fallback to gap sorting with stability improvements
-            const gapA = a.gap_to_leader ?? 999999;
-            const gapB = b.gap_to_leader ?? 999999;
+          const gapA = a.gap_to_leader ?? Number.POSITIVE_INFINITY;
+          const gapB = b.gap_to_leader ?? Number.POSITIVE_INFINITY;
+          if (gapA === gapB) return a.driver_number - b.driver_number;
+          return gapA - gapB;
+        });
 
-            // Handle leader case (gap = 0)
-            if (gapA === 0 && gapB !== 0) return -1;
-            if (gapB === 0 && gapA !== 0) return 1;
-            if (gapA === 0 && gapB === 0) {
-              // Both leaders? Use driver number as tiebreaker
-              return a.driver_number - b.driver_number;
-            }
-
-            // Normal gap sorting
-            if (gapA !== 999999 && gapB !== 999999) {
-              const diff = gapA - gapB;
-              // Add small tolerance to prevent micro-fluctuations
-              if (Math.abs(diff) < 0.1) {
-                return a.driver_number - b.driver_number;
-              }
-              return diff;
-            }
-
-            // Handle null gaps
-            if (gapA === 999999 && gapB !== 999999) return 1;
-            if (gapB === 999999 && gapA !== 999999) return -1;
-
-            return a.driver_number - b.driver_number;
-          });
-
-        // Add retired drivers at the end
-        const retiredDriversData = Array.from(newRetiredDrivers)
-          .filter((driverNum) => drivers[driverNum])
-          .map((driverNum) => ({
-            driver_number: driverNum,
+        // Retired drivers appended at the end
+        const retiredData = Array.from(newRetired)
+          .filter((num) => drivers[num]) // only show drivers we know
+          .map((num) => ({
+            driver_number: num,
             gap_to_leader: null,
             interval: null,
             status: "OUT",
           }));
 
-        setIntervals([...sortedIntervals, ...retiredDriversData]);
-        setRetiredDrivers(newRetiredDrivers);
-      } catch (error) {
-        console.error("Failed to fetch live intervals:", error);
+        if (!cancelled) {
+          setIntervals([...sorted, ...retiredData]);
+          setRetiredDrivers(newRetired);
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Failed to fetch live intervals:", err);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
-    fetchLiveIntervals();
-    // Reduce update frequency to prevent jitter
-    const intervalId = setInterval(fetchLiveIntervals, 10000); // 10 seconds instead of 5
+    // If live, fetch now and set repeating timer
+    if (isLiveRace) {
+      fetchLive();
+      pollRef.current = setInterval(fetchLive, 10000); // every 10s
+    }
 
-    return () => clearInterval(intervalId);
-  }, [drivers, retiredDrivers, isLiveRace]);
+    // Cleanup or stop polling
+    return () => {
+      cancelled = true;
+      controller.abort();
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+    // we intentionally include drivers and retiredDrivers in deps so poll logic responds to them
+  }, [isLiveRace, drivers, retiredDrivers]);
 
-  // Show loading state
-  if (loading) {
+  // Loading / no live race messages
+  if (loading && isLiveRace) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-8">
@@ -169,7 +188,6 @@ const LiveRace = () => {
     );
   }
 
-  // Show no race message when there's no live race
   if (!isLiveRace) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -182,34 +200,23 @@ const LiveRace = () => {
               No Live Race
             </h1>
             <p className="text-xl text-gray-600 mb-8">
-              There is no current race happening right now.
+              There is no current session running right now.
             </p>
-            <div className="space-y-4 text-gray-500">
-              <p>
-                Check back during race weekends for live timing and standings!
-              </p>
-              <div className="flex justify-center space-x-4 mt-8">
-                <a
-                  href="/schedule"
-                  className="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-                >
-                  View Schedule
-                </a>
-                <a
-                  href="/results"
-                  className="bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-700 transition-colors"
-                >
-                  Latest Results
-                </a>
-              </div>
-            </div>
+            <p className="text-sm text-gray-500">
+              Latest session:{" "}
+              {liveSession
+                ? `${liveSession.name || liveSession.session_type || ""} - ${
+                    liveSession.status || liveSession.session_status || ""
+                  }`
+                : "None"}
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  // Show live race data
+  // Live race UI (table)
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -234,7 +241,10 @@ const LiveRace = () => {
           <tbody>
             {intervals.map((driver, index) => {
               const isRetired = driver.status === "OUT";
-              const isLapped = driver.gap_to_leader > 60; // More than 1 minute behind
+              const isLapped =
+                driver.gap_to_leader !== null &&
+                driver.gap_to_leader !== undefined &&
+                driver.gap_to_leader > 60; // > 60s => lapped
 
               return (
                 <tr
